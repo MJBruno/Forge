@@ -1,0 +1,193 @@
+{
+  "name": "forge",
+  "displayName": "Forge — Kastel",
+  "description": "Support du langage Kastel (.ks) : coloration, snippets, serveur de langage, exécution et Gate.",
+  "version": "0.2.0",
+  "publisher": "kastel",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.82.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Other"
+  ],
+  "keywords": [
+    "kastel",
+    "ks",
+    "forge",
+    "gate"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "kastel",
+        "aliases": [
+          "Kastel",
+          "kastel"
+        ],
+        "extensions": [
+          ".ks"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "kastel",
+        "scopeName": "source.kastel",
+        "path": "./syntaxes/kastel.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "kastel",
+        "path": "./snippets/kastel.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "forge.runFile",
+        "title": "Forge: Exécuter le fichier Kastel",
+        "icon": "$(play)"
+      },
+      {
+        "command": "forge.openRepl",
+        "title": "Forge: Ouvrir le REPL Kastel",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "forge.gate",
+        "title": "Forge: Commande Gate…"
+      },
+      {
+        "command": "forge.restartServer",
+        "title": "Forge: Redémarrer le serveur de langage"
+      },
+      {
+        "command": "forge.showOutput",
+        "title": "Forge: Afficher la sortie"
+      }
+    ],
+    "menus": {
+      "editor/title/run": [
+        {
+          "command": "forge.runFile",
+          "when": "resourceLangId == kastel",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "forge.runFile",
+          "when": "resourceLangId == kastel"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "forge.runFile",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "editorLangId == kastel"
+      }
+    ],
+    "configuration": {
+      "title": "Forge",
+      "properties": {
+        "forge.kastel.path": {
+          "type": "string",
+          "default": "kastel",
+          "description": "Commande ou chemin de l'exécutable Kastel.",
+          "scope": "machine-overridable"
+        },
+        "forge.gate.path": {
+          "type": "string",
+          "default": "gate",
+          "description": "Commande ou chemin de l'exécutable Gate (gestionnaire de projet).",
+          "scope": "machine-overridable"
+        },
+        "forge.gate.commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "run",
+            "build",
+            "test",
+            "check"
+          ],
+          "description": "Sous-commandes Gate proposées par « Forge: Commande Gate… »."
+        },
+        "forge.run.saveBeforeRun": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enregistrer le fichier avant de l'exécuter."
+        },
+        "forge.run.clearTerminal": {
+          "type": "boolean",
+          "default": false,
+          "description": "Effacer le terminal avant chaque exécution."
+        },
+        "forge.server.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Démarrer le serveur de langage Kastel (LSP) s'il est disponible."
+        },
+        "forge.server.path": {
+          "type": "string",
+          "default": "",
+          "description": "Chemin ou commande du serveur de langage (stdio). Laisser vide pour la détection automatique : binaire embarqué (server/<os>-<arch>/), PATH, ~/.cargo/bin, puis build local. Variables : ${workspaceFolder}, ${env:NOM}, ~.",
+          "scope": "machine-overridable"
+        },
+        "forge.server.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Arguments passés au serveur de langage.",
+          "scope": "machine-overridable"
+        },
+        "forge.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Niveau de trace des échanges client/serveur."
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.0.0"
+  },
+  "scripts": {
+    "build:server": "node scripts/build-server.js",
+    "package": "vsce package"
+  },
+  "extensionKind": [
+    "workspace"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Les chemins d'exécutables (kastel, gate, kastel-lsp) ne sont pas modifiables par un espace de travail non approuvé.",
+      "restrictedConfigurations": [
+        "forge.kastel.path",
+        "forge.gate.path",
+        "forge.server.path",
+        "forge.server.args"
+      ]
+    }
+  }
+}

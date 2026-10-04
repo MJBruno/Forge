@@ -1,0 +1,42 @@
+# Modèle : un .vsix par plateforme, avec le binaire kastel-lsp embarqué.
+# À adapter : disposition du dépôt (ici : racine = dépôt Kastel, extension dans forge/, LSP dans LSP/)
+# et noms des runners GitHub disponibles.
+name: release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest,  vsce: win32-x64,    platform: win32,  arch: x64 }
+          - { os: ubuntu-latest,   vsce: linux-x64,    platform: linux,  arch: x64 }
+          - { os: ubuntu-24.04-arm, vsce: linux-arm64, platform: linux,  arch: arm64 }
+          - { os: macos-15-intel,  vsce: darwin-x64,   platform: darwin, arch: x64 }
+          - { os: macos-latest,    vsce: darwin-arm64, platform: darwin, arch: arm64 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Build kastel-lsp et embarquer le binaire
+        working-directory: forge
+        env:
+          KASTEL_LSP_DIR: ${{ github.workspace }}/LSP
+          KASTEL_PLATFORM: ${{ matrix.platform }}
+          KASTEL_ARCH: ${{ matrix.arch }}
+        run: node scripts/build-server.js
+      - name: Empaqueter
+        working-directory: forge
+        run: |
+          npm install
+          npx @vscode/vsce package --target ${{ matrix.vsce }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: forge-${{ matrix.vsce }}
+          path: forge/*.vsix
