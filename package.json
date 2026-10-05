@@ -1,8 +1,8 @@
 {
-  "name": "forge",
+  "name": "forge-kastel",
   "displayName": "Forge — Kastel",
   "description": "Support officiel de Kastel (.ks) dans VS Code : coloration syntaxique, snippets, LSP, exécution, REPL et Gate.",
-  "version": "0.2.4",
+  "version": "0.1.0",
   "publisher": "kastel",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://github.com/MJBruno/Forge#readme",
