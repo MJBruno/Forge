@@ -3,6 +3,7 @@
 // Compile kastel-lsp et copie le binaire dans server/<plateforme>-<arch>/ (embarqué dans le .vsix).
 //
 // Variables d'environnement :
+//   --std <dossier> ou KASTEL_STD_DIR : bibliothèque standard à embarquer (défaut : <crate kastel>/std)
 //   --lsp <dossier> ou KASTEL_LSP_DIR : dossier du crate kastel-lsp (sinon recherche automatique autour de l'extension)
 //   KASTEL_RUST_TARGET triplet Rust pour la compilation croisée (ex. aarch64-apple-darwin)
 //   KASTEL_PLATFORM / KASTEL_ARCH  plateforme VS Code ciblée (défaut : celles de cette machine)
@@ -64,3 +65,25 @@ const out = path.join(dest, bin);
 fs.copyFileSync(built, out);
 if (platform !== 'win32') fs.chmodSync(out, 0o755);
 console.log(`Copié : ${out}`);
+
+// --- Bibliothèque standard (indépendante de la plateforme) : copiée dans std/ à la racine de l'extension.
+// Source : --std <dossier>, KASTEL_STD_DIR, sinon <crate kastel>/std déduit de la dépendance `path` du Cargo.toml.
+function stdFromCargo() {
+  try {
+    const toml = fs.readFileSync(path.join(lspDir, 'Cargo.toml'), 'utf8');
+    const match = toml.match(/^\s*kastel\s*=\s*\{[^}]*path\s*=\s*"([^"]+)"/m);
+    return match ? path.resolve(lspDir, match[1].replace(/\\\\/g, '/'), 'std') : undefined;
+  } catch (_) {
+    return undefined;
+  }
+}
+const stdArg = process.argv.indexOf('--std');
+const stdSource = (stdArg !== -1 && process.argv[stdArg + 1]) || process.env.KASTEL_STD_DIR || stdFromCargo();
+if (stdSource && fs.existsSync(stdSource) && fs.statSync(stdSource).isDirectory()) {
+  const stdDest = path.join(root, 'std');
+  fs.rmSync(stdDest, { recursive: true, force: true });
+  fs.cpSync(stdSource, stdDest, { recursive: true });
+  console.log(`std copiée : ${stdSource} -> ${stdDest}`);
+} else {
+  console.warn(`std introuvable (${stdSource || 'aucun chemin déduit'}) : indique-la avec --std <dossier>. Sans elle, "import std.*" n'est pas résolu dans l'éditeur.`);
+}

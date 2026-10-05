@@ -1,10 +1,19 @@
 {
   "name": "forge",
   "displayName": "Forge — Kastel",
-  "description": "Support du langage Kastel (.ks) : coloration, snippets, serveur de langage, exécution et Gate.",
-  "version": "0.2.0",
+  "description": "Support officiel de Kastel (.ks) dans VS Code : coloration syntaxique, snippets, LSP, exécution, REPL et Gate.",
+  "version": "0.2.4",
   "publisher": "kastel",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://github.com/MJBruno/Forge#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MJBruno/Forge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MJBruno/Forge/issues"
+  },
+  "pricing": "Free",
   "engines": {
     "vscode": "^1.82.0"
   },
@@ -17,9 +26,39 @@
     "kastel",
     "ks",
     "forge",
-    "gate"
+    "gate",
+    "lsp",
+    "language server",
+    "programming language",
+    "code completion",
+    "syntax highlighting",
+    "repl",
+    "visual studio code",
+    "vscode"
   ],
+  "icon": "images/icon.png",
   "main": "./extension.js",
+  "extensionKind": [
+    "workspace"
+  ],
+  "capabilities": {
+    "virtualWorkspaces": {
+      "supported": "limited",
+      "description": "La coloration syntaxique et les snippets restent disponibles dans les workspaces virtuels. L'exécution de Kastel, Gate, le REPL et le serveur LSP nécessitent un système de fichiers réel."
+    },
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Les outils qui exécutent des programmes ou lancent des processus externes nécessitent un espace de travail approuvé.",
+      "restrictedConfigurations": [
+        "forge.kastel.path",
+        "forge.gate.path",
+        "forge.gate.commands",
+        "forge.server.path",
+        "forge.server.args",
+        "forge.std.path"
+      ]
+    }
+  },
   "contributes": {
     "languages": [
       {
@@ -31,7 +70,11 @@
         "extensions": [
           ".ks"
         ],
-        "configuration": "./language-configuration.json"
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./images/ks.png",
+          "dark": "./images/ks.png"
+        }
       }
     ],
     "grammars": [
@@ -51,20 +94,24 @@
       {
         "command": "forge.runFile",
         "title": "Forge: Exécuter le fichier Kastel",
-        "icon": "$(play)"
+        "icon": "$(play)",
+        "enablement": "resourceLangId == kastel && isWorkspaceTrusted && !virtualWorkspace"
       },
       {
         "command": "forge.openRepl",
         "title": "Forge: Ouvrir le REPL Kastel",
-        "icon": "$(terminal)"
+        "icon": "$(terminal)",
+        "enablement": "isWorkspaceTrusted && !virtualWorkspace"
       },
       {
         "command": "forge.gate",
-        "title": "Forge: Commande Gate…"
+        "title": "Forge: Commande Gate…",
+        "enablement": "isWorkspaceTrusted && !virtualWorkspace"
       },
       {
         "command": "forge.restartServer",
-        "title": "Forge: Redémarrer le serveur de langage"
+        "title": "Forge: Redémarrer le serveur de langage",
+        "enablement": "isWorkspaceTrusted && !virtualWorkspace"
       },
       {
         "command": "forge.showOutput",
@@ -75,14 +122,29 @@
       "editor/title/run": [
         {
           "command": "forge.runFile",
-          "when": "resourceLangId == kastel",
+          "when": "resourceLangId == kastel && isWorkspaceTrusted && !virtualWorkspace",
           "group": "navigation"
         }
       ],
       "commandPalette": [
         {
           "command": "forge.runFile",
-          "when": "resourceLangId == kastel"
+          "when": "resourceLangId == kastel && isWorkspaceTrusted && !virtualWorkspace"
+        },
+        {
+          "command": "forge.openRepl",
+          "when": "isWorkspaceTrusted && !virtualWorkspace"
+        },
+        {
+          "command": "forge.gate",
+          "when": "isWorkspaceTrusted && !virtualWorkspace"
+        },
+        {
+          "command": "forge.restartServer",
+          "when": "isWorkspaceTrusted && !virtualWorkspace"
+        },
+        {
+          "command": "forge.showOutput"
         }
       ]
     },
@@ -91,7 +153,7 @@
         "command": "forge.runFile",
         "key": "ctrl+alt+r",
         "mac": "cmd+alt+r",
-        "when": "editorLangId == kastel"
+        "when": "editorLangId == kastel && isWorkspaceTrusted && !virtualWorkspace"
       }
     ],
     "configuration": {
@@ -161,6 +223,12 @@
           ],
           "default": "off",
           "description": "Niveau de trace des échanges client/serveur."
+        },
+        "forge.std.path": {
+          "type": "string",
+          "default": "",
+          "description": "Dossier de la bibliothèque standard Kastel (std/). Vide = détection automatique : std à côté de kastel, std embarquée dans l'extension ou std du workspace. Transmis au serveur LSP via KASTEL_STD_PATH.",
+          "scope": "machine-overridable"
         }
       }
     }
@@ -169,25 +237,10 @@
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
-    "@vscode/vsce": "^3.0.0"
+    "@vscode/vsce": "^4.0.0"
   },
   "scripts": {
     "build:server": "node scripts/build-server.js",
     "package": "vsce package"
-  },
-  "extensionKind": [
-    "workspace"
-  ],
-  "capabilities": {
-    "untrustedWorkspaces": {
-      "supported": "limited",
-      "description": "Les chemins d'exécutables (kastel, gate, kastel-lsp) ne sont pas modifiables par un espace de travail non approuvé.",
-      "restrictedConfigurations": [
-        "forge.kastel.path",
-        "forge.gate.path",
-        "forge.server.path",
-        "forge.server.args"
-      ]
-    }
   }
 }

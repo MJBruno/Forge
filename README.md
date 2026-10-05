@@ -1,48 +1,68 @@
-# Forge — extension VS Code pour Kastel
+# Forge — Kastel pour VS Code
 
-Support du langage **Kastel** (`.ks`) dans VS Code.
+**Forge** est l'extension officielle de VS Code pour le langage **Kastel** (fichiers `.ks`) :
+coloration syntaxique, snippets, serveur de langage, exécution en un clic et intégration de **Gate**.
 
 ## Fonctionnalités
 
-- **Coloration syntaxique** : `let`, `func ... -> T`, `class`/`interface`/`enum`/`type`, `import std.x`,
-  modificateurs (`public`, `private`, `protected`, `static`, `export`, `async`), `try/catch/finally`,
-  `await`, `Option`/`Result` (`Some`, `Ok`, `Err`, `None`), collections (`List`, `Dict`, `Set`, `Tuple`, `Record`),
-  capabilities d'opérateurs (`Add`, `Sub`, `Eq`, `Ord`, `Index`, …), unions `int | float`, génériques `<T: Add + Eq>`.
-- **Snippets** : `func`, `class`, `init`, `interface`, `enum`, `type`, `import`, `match`, `try`, `for`, `opadd`, …
-  et les littéraux `list`, `set`, `dict`, `record`, `tuple` (+ variantes typées `letlist`, `letset`, `letdict`, `letrecord`).
-- **Exécution** : `Ctrl+Alt+R` (ou bouton ▶ de l'éditeur) lance `kastel <fichier>`.
-- **REPL** : *Forge: Ouvrir le REPL Kastel*.
-- **Gate** : *Forge: Commande Gate…* (sous-commandes configurables).
-- **Serveur de langage (LSP)** : démarre automatiquement le serveur Kastel s'il est disponible
-  (diagnostics, complétion, etc. selon ce que le serveur implémente).
+### Édition
 
-## Plateformes
+- **Coloration syntaxique** complète : mots-clés (`let`, `const`, `func`, `class`, `interface`, `enum`, `match`, `async`, `await`, `try/catch/finally`…),
+  chaînes `"…"` et `'…'`, nombres (décimaux, hexadécimaux `0x`, binaires `0b`, exposants), intervalles `..` et `..=`, opérateurs, commentaires.
+- **Types colorés** : paramètres (`name: int`), types de retour (`-> int`), `let x: T`, `catch (e: Err)`,
+  alias `type A = …`, génériques `<T: Add + Eq>`, unions `int | str`, `List<int>`, records `{ x: int }`.
+- **Snippets** (liste ci-dessous), parenthèses et guillemets automatiques, repli de code `// region`.
 
-| Système | Cible `vsce` | Binaire embarqué |
-|---|---|---|
-| Windows x64 | `win32-x64` | `server/win32-x64/kastel-lsp.exe` |
-| Linux x64 / arm64 | `linux-x64` / `linux-arm64` | `server/linux-<arch>/kastel-lsp` |
-| macOS Intel / Apple Silicon | `darwin-x64` / `darwin-arm64` | `server/darwin-<arch>/kastel-lsp` |
+### Serveur de langage (LSP)
 
-Le serveur est cherché dans cet ordre : réglage `forge.server.path` → binaire embarqué →
-`PATH` → `~/.cargo/bin` → build local (`target/release`, `LSP/target/release`).
-En WSL, SSH ou conteneur, l'extension s'exécute côté distant et utilise le binaire de ce système.
+Avec le serveur `kastel-lsp` (embarqué dans l'extension) :
+
+- diagnostics en temps réel
+- complétion (`.`, `:`, `<`), y compris les membres de module (`math.` après `import std.math;`)
+- survol (types et signatures), aide à la signature (`(` et `,`)
+- aller à la définition, trouver les références, renommer (avec validation préalable)
+- symboles du document et de l'espace de travail, mise en évidence des occurrences
+- formatage du document
+
+### Exécution
+- **Exécuter le fichier** : bouton ▶ de l'éditeur ou `Ctrl+Alt+R` (`Cmd+Alt+R` sur macOS) lance `kastel <fichier>`.
+- **REPL Kastel** dans un terminal intégré.
+- **Gate** : lance les sous-commandes de ton gestionnaire de projet depuis la palette de commandes.
 
 ## Installation
 
-```bash
-cd forge
-npm install
-node scripts/build-server.js          # compile kastel-lsp pour CETTE machine et l'embarque
-npx @vscode/vsce package --target <cible>   # ex. win32-x64, linux-x64, darwin-arm64
-code --install-extension forge-0.2.0-<cible>.vsix
+Depuis le Marketplace : cherche **Forge** dans la vue Extensions, ou :
+
+```
+code --install-extension <publisher>.forge
 ```
 
-Le dossier du crate `kastel-lsp` est trouvé automatiquement (`../LSP`, `../../LSP/Kastel-lsp`, …) ; sinon : `node scripts/build-server.js --lsp "C:\\chemin\\Kastel-lsp"` (ou variable `KASTEL_LSP_DIR`).
-Pour publier toutes les plateformes d'un coup, utiliser le modèle `.github/workflows/release.yml`
-(un runner par OS). Sans binaire embarqué, installer `kastel-lsp` dans le `PATH` suffit.
+Depuis un fichier `.vsix` : `code --install-extension forge-<version>-<plateforme>.vsix`.
 
-Pour tester sans empaqueter : ouvrir le dossier dans VS Code, `npm install`, puis `F5`.
+L'extension est publiée par plateforme et embarque le serveur de langage :
+
+| Système | Plateforme |
+|---|---|
+| Windows (Intel/AMD) | `win32-x64` |
+| Linux (Intel/AMD, ARM) | `linux-x64`, `linux-arm64` |
+| macOS (Intel, Apple Silicon) | `darwin-x64`, `darwin-arm64` |
+
+Fonctionne aussi dans WSL, SSH et les conteneurs (l'extension s'exécute côté distant).
+
+### Prérequis
+- Le langage **Kastel** (commande `kastel`) dans le `PATH`, pour exécuter des fichiers et ouvrir le REPL.
+- **Gate** dans le `PATH`, pour la commande *Forge: Commande Gate…* (facultatif).
+- Coloration, snippets et serveur de langage fonctionnent sans ces deux outils.
+
+## Commandes
+
+| Commande | Rôle |
+|---|---|
+| **Forge: Exécuter le fichier Kastel** | Exécute le fichier `.ks` actif (`Ctrl+Alt+R`) |
+| **Forge: Ouvrir le REPL Kastel** | Ouvre le REPL dans un terminal |
+| **Forge: Commande Gate…** | Choisit et lance une sous-commande Gate |
+| **Forge: Redémarrer le serveur de langage** | Relance `kastel-lsp` |
+| **Forge: Afficher la sortie** | Journal du serveur et de la détection des chemins |
 
 ## Réglages
 
@@ -50,12 +70,57 @@ Pour tester sans empaqueter : ouvrir le dossier dans VS Code, `npm install`, pui
 |---|---|---|
 | `forge.kastel.path` | `kastel` | Exécutable Kastel |
 | `forge.gate.path` | `gate` | Exécutable Gate |
-| `forge.gate.commands` | `run, build, test, check` | Sous-commandes proposées |
-| `forge.server.enabled` | `true` | Active le LSP |
-| `forge.server.path` | *(vide = auto)* | Exécutable du serveur de langage (stdio) ; accepte `${workspaceFolder}`, `${env:X}`, `~` |
-| `forge.server.args` | `[]` | Arguments du serveur |
-| `forge.run.saveBeforeRun` | `true` | Enregistre avant d'exécuter |
-| `forge.run.clearTerminal` | `false` | Efface le terminal avant exécution |
-| `forge.trace.server` | `off` | Trace client/serveur |
+| `forge.gate.commands` | `run, build, test, check` | Sous-commandes proposées par la commande Gate |
+| `forge.run.saveBeforeRun` | `true` | Enregistre le fichier avant de l'exécuter |
+| `forge.run.clearTerminal` | `false` | Efface le terminal avant chaque exécution |
+| `forge.server.enabled` | `true` | Active le serveur de langage |
+| `forge.server.path` | *(vide : auto)* | Exécutable du serveur ; accepte `${workspaceFolder}`, `${env:NOM}` et `~` |
+| `forge.server.args` | `[]` | Arguments passés au serveur |
+| `forge.std.path` | *(vide : auto)* | Dossier `std/` de Kastel (bibliothèque standard) |
+| `forge.trace.server` | `off` | Trace des échanges client/serveur (`off`, `messages`, `verbose`) |
 
-Si le serveur de langage n'est pas trouvé, la coloration, les snippets et l'exécution restent fonctionnels.
+Les chemins d'exécutables ne peuvent pas être modifiés par un espace de travail non approuvé.
+
+### Détection automatique
+- **Serveur de langage** : réglage `forge.server.path`, puis binaire embarqué, puis `PATH`, `~/.cargo/bin` et enfin build local (`target/release`).
+- **Bibliothèque standard** : réglage `forge.std.path`, variable `KASTEL_STD_PATH`, `std/` à côté de `kastel`, `std/` embarquée, `std/` de l'espace de travail.
+
+## Snippets
+
+Tape le préfixe puis `Tab`.
+
+| Préfixe | Insère |
+|---|---|
+| `func`, `sfunc`, `afunc`, `efunc`, `main` | fonction, statique, `async`, exportée, point d'entrée |
+| `class`, `classi`, `init`, `interface`, `opadd` | classe, classe + interface, constructeur `initialize`, interface, opérateur `Add` |
+| `enum`, `type`, `typer` | énumération, alias de type, alias record |
+| `let`, `const` | variables typées |
+| `if`, `ifelse`, `while`, `for`, `forr` | conditions et boucles (`for x in xs`, `for i in 0..10`) |
+| `match`, `matchr`, `matchres` | pattern matching, sur `Option`, sur `Result` |
+| `try` | `try / catch / finally` |
+| `import`, `importf`, `from` | imports |
+| `list`, `set`, `dict`, `record`, `tuple`, `tuple1`, `emptyset`, `emptydict` | littéraux |
+| `letlist`, `letset`, `letdict`, `letrecord`, `lettuple` | littéraux avec déclaration typée |
+| `lambda`, `anon`, `ternary`, `new`, `newg`, `pr` | fonction fléchée, fonction anonyme, ternaire, instanciation, affichage |
+
+## Dépannage
+
+- **« Serveur de langage introuvable »** : ouvre *Forge: Afficher la sortie* pour voir les emplacements testés, puis renseigne `forge.server.path` ou installe `kastel-lsp` dans le `PATH`.
+- **`import std.…` non résolu** : indique le dossier de la bibliothèque standard dans `forge.std.path`.
+- **Rien ne s'exécute** : vérifie que `kastel` est dans le `PATH` ou renseigne `forge.kastel.path`.
+
+## Compiler depuis les sources
+
+```
+npm install
+node scripts/build-server.js --lsp "<dossier kastel-lsp>"
+npx @vscode/vsce package --target <plateforme>
+```
+
+`build-server.js` compile le serveur avec `cargo`, l'embarque dans `server/<plateforme>/` et copie la bibliothèque standard.
+Pour tester sans empaqueter : ouvre le dossier dans VS Code, lance `npm install`, puis `F5`.
+Un modèle de workflow GitHub (`.github/workflows/release.yml`) construit un paquet par plateforme.
+
+## Licence
+
+[MIT](LICENSE)

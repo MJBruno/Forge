@@ -7,6 +7,18 @@
       "include": "#comments"
     },
     {
+      "include": "#function-header"
+    },
+    {
+      "include": "#catch-clause"
+    },
+    {
+      "include": "#variable-annotation"
+    },
+    {
+      "include": "#type-alias"
+    },
+    {
       "include": "#declarations"
     },
     {
@@ -202,16 +214,16 @@
     "types": {
       "patterns": [
         {
-          "name": "support.type.capability.kastel",
+          "name": "entity.name.type.capability.kastel",
           "match": "\\b(Add|Sub|Mul|Div|Mod|Neg|BitNot|BitAnd|BitOr|BitXor|ShiftLeft|ShiftRight|Eq|Ord|Index|IndexMut)\\b"
         },
         {
-          "name": "support.type.builtin.kastel",
-          "match": "\\b(int|float|str|bool|void|List|Dict|Set|Tuple|Record|Option|Result|Dynamic)\\b"
+          "name": "entity.name.type.primitive.kastel",
+          "match": "\\b(int|float|str|bool|void|dynamic|any|None)\\b"
         },
         {
-          "name": "support.type.self.kastel",
-          "match": "\\bSelf\\b"
+          "name": "entity.name.type.builtin.kastel",
+          "match": "\\b(List|Dict|Set|Tuple|Range|Option|Result|Task|Channel|Mutex|Semaphore|WaitGroup|Iterator|Iterable|Self)\\b"
         },
         {
           "name": "support.function.constructor.kastel",
@@ -354,6 +366,328 @@
         {
           "name": "punctuation.separator.colon.kastel",
           "match": ":"
+        }
+      ]
+    },
+    "type-core": {
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "name": "keyword.operator.arrow.kastel",
+          "match": "->"
+        },
+        {
+          "name": "entity.name.type.primitive.kastel",
+          "match": "\\b(int|float|str|bool|void|dynamic|any|None)\\b"
+        },
+        {
+          "name": "entity.name.type.capability.kastel",
+          "match": "\\b(Add|Sub|Mul|Div|Mod|Neg|BitNot|BitAnd|BitOr|BitXor|ShiftLeft|ShiftRight|Eq|Ord|Index|IndexMut)\\b"
+        },
+        {
+          "name": "entity.name.type.builtin.kastel",
+          "match": "\\b(List|Dict|Set|Tuple|Range|Option|Result|Task|Channel|Mutex|Semaphore|WaitGroup|Iterator|Iterable|Self)\\b"
+        },
+        {
+          "name": "entity.name.namespace.kastel",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*(?=\\.[A-Za-z_])"
+        },
+        {
+          "name": "punctuation.accessor.kastel",
+          "match": "\\."
+        },
+        {
+          "name": "entity.name.type.kastel",
+          "match": "\\b[A-Z][A-Za-z0-9_]*\\b"
+        },
+        {
+          "name": "meta.type.parameters.kastel",
+          "begin": "<",
+          "end": ">",
+          "patterns": [
+            {
+              "include": "#type-expression"
+            },
+            {
+              "name": "punctuation.separator.comma.kastel",
+              "match": ","
+            }
+          ]
+        },
+        {
+          "begin": "\\(",
+          "end": "\\)",
+          "patterns": [
+            {
+              "include": "#type-expression"
+            },
+            {
+              "name": "punctuation.separator.comma.kastel",
+              "match": ","
+            }
+          ]
+        },
+        {
+          "begin": "\\[",
+          "end": "\\]",
+          "patterns": [
+            {
+              "include": "#type-expression"
+            },
+            {
+              "name": "punctuation.separator.comma.kastel",
+              "match": ","
+            }
+          ]
+        },
+        {
+          "name": "keyword.operator.type.union.kastel",
+          "match": "\\|"
+        },
+        {
+          "name": "keyword.operator.type.constraint.kastel",
+          "match": "\\+"
+        },
+        {
+          "name": "keyword.operator.type.optional.kastel",
+          "match": "\\?"
+        }
+      ]
+    },
+    "type-record": {
+      "name": "meta.type.record.kastel",
+      "begin": "\\{",
+      "end": "\\}",
+      "patterns": [
+        {
+          "name": "variable.other.property.kastel",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*(?=\\s*:)"
+        },
+        {
+          "name": "punctuation.separator.colon.kastel",
+          "match": ":"
+        },
+        {
+          "name": "punctuation.separator.comma.kastel",
+          "match": ","
+        },
+        {
+          "include": "#type-expression"
+        }
+      ]
+    },
+    "type-expression": {
+      "patterns": [
+        {
+          "include": "#type-record"
+        },
+        {
+          "include": "#type-core"
+        }
+      ]
+    },
+    "generic-params": {
+      "name": "meta.type.parameters.kastel",
+      "begin": "<",
+      "end": ">",
+      "patterns": [
+        {
+          "begin": ":",
+          "end": "(?=,|>)",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.separator.colon.kastel"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#type-core"
+            }
+          ]
+        },
+        {
+          "name": "entity.name.type.parameter.kastel",
+          "match": "[A-Za-z_][A-Za-z0-9_]*"
+        },
+        {
+          "name": "punctuation.separator.comma.kastel",
+          "match": ","
+        }
+      ]
+    },
+    "parameter-list": {
+      "name": "meta.parameters.kastel",
+      "begin": "\\(",
+      "end": "\\)",
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "begin": "([A-Za-z_][A-Za-z0-9_]*)\\s*(:)",
+          "end": "(?=,|\\)|=)",
+          "name": "meta.type.annotation.kastel",
+          "beginCaptures": {
+            "1": {
+              "name": "variable.parameter.kastel"
+            },
+            "2": {
+              "name": "punctuation.separator.colon.kastel"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#type-expression"
+            }
+          ]
+        },
+        {
+          "name": "variable.parameter.kastel",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*(?=\\s*[,)=])"
+        },
+        {
+          "begin": "\\(",
+          "end": "\\)",
+          "patterns": [
+            {
+              "include": "#strings"
+            },
+            {
+              "include": "#numbers"
+            },
+            {
+              "include": "#constants"
+            }
+          ]
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#numbers"
+        },
+        {
+          "include": "#constants"
+        },
+        {
+          "name": "keyword.operator.assignment.kastel",
+          "match": "="
+        },
+        {
+          "name": "punctuation.separator.comma.kastel",
+          "match": ","
+        }
+      ]
+    },
+    "function-header": {
+      "name": "meta.function.kastel",
+      "begin": "\\b(func)\\b",
+      "end": "(?=\\{|;)",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.function.kastel"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "match": "\\G\\s*([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.kastel"
+            }
+          }
+        },
+        {
+          "include": "#generic-params"
+        },
+        {
+          "include": "#parameter-list"
+        },
+        {
+          "name": "meta.return-type.kastel",
+          "begin": "(->)\\s*",
+          "end": "(?=\\{|;)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.operator.arrow.kastel"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#type-core"
+            }
+          ]
+        }
+      ]
+    },
+    "catch-clause": {
+      "begin": "\\b(catch)\\b",
+      "end": "(?=\\{)",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.exception.kastel"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#parameter-list"
+        }
+      ]
+    },
+    "variable-annotation": {
+      "name": "meta.type.annotation.kastel",
+      "begin": "\\b(let|const)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*(:)",
+      "end": "(?=[=;]|$)",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.let.kastel"
+        },
+        "2": {
+          "name": "variable.other.definition.kastel"
+        },
+        "3": {
+          "name": "punctuation.separator.colon.kastel"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#type-expression"
+        }
+      ]
+    },
+    "type-alias": {
+      "name": "meta.type.alias.kastel",
+      "begin": "\\b(type)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*(<[^>]*>)?\\s*(=)",
+      "end": "(?=;)",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.alias.kastel"
+        },
+        "2": {
+          "name": "entity.name.type.alias.kastel"
+        },
+        "3": {
+          "patterns": [
+            {
+              "include": "#generic-params"
+            }
+          ]
+        },
+        "4": {
+          "name": "keyword.operator.assignment.kastel"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#type-expression"
         }
       ]
     }

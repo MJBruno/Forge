@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.4
+- README sans image à chemin relatif : `vsce package` fonctionne sans dépôt déclaré. Remettre les logos dans le README une fois le champ `repository` renseigné.
+
+## 0.2.3
+- Logos : mascotte Forge pour l'extension, tour Kastel pour les fichiers `.ks`.
+
+## 0.2.2
+- Coloration des types : paramètres (`name: int`), types de retour (`-> int`), `let x: T`, `catch (e: Err)`, alias `type A = …`, génériques `<T: Add + Eq>`, unions `int | str`, `List<int>`, records `{ x: int }`, types fonction. Scopes `entity.name.type.*` (colorés par tous les thèmes) ; types intégrés manquants ajoutés (`dynamic`, `any`, `Range`, `Task`, `Channel`, `Mutex`, `Semaphore`, `WaitGroup`, `Iterator`, `Iterable`).
+
+## 0.2.1
+- Bibliothèque standard : réglage `forge.std.path`, détection automatique de `std/` (à côté de `kastel`, embarquée, workspace) et transmission au LSP via `KASTEL_STD_PATH` ; `build-server.js` embarque `std/`.
+
 ## 0.2.0
 - Serveur de langage multi-plateforme : détection automatique du binaire `kastel-lsp` (embarqué `server/<os>-<arch>/`, PATH, `~/.cargo/bin`, build local) sur Windows, macOS et Linux ; `forge.server.path` vide par défaut.
 - Exécution via l'API de tâches : quoting correct pour cmd, PowerShell, bash, zsh, fish.

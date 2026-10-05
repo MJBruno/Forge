@@ -4,7 +4,7 @@ const vscode = require('vscode');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { resolveServer, targetId } = require('./lib/resolve');
+const { resolveServer, resolveStd, expandVariables, targetId } = require('./lib/resolve');
 
 let client;
 let output;
@@ -23,9 +23,12 @@ function workspaceRoot(uri) {
 
 // Exécute `command args…` dans un terminal de tâche. ShellExecution applique
 // le bon quoting pour chaque shell (cmd, PowerShell, bash, zsh, fish…).
-function runTask(label, command, args, cwd) {
+function runTask(label, command, args, cwd, env) {
   const strong = (value) => ({ value, quoting: vscode.ShellQuoting.Strong });
-  const execution = new vscode.ShellExecution(strong(command), args.map(strong), cwd ? { cwd } : undefined);
+  const options = {};
+  if (cwd) options.cwd = cwd;
+  if (env) options.env = env;
+  const execution = new vscode.ShellExecution(strong(command), args.map(strong), options);
   const task = new vscode.Task({ type: 'shell' }, vscode.TaskScope.Global, label, 'forge', execution);
   task.presentationOptions = {
     reveal: vscode.TaskRevealKind.Always,
@@ -47,8 +50,13 @@ async function runFile(uri) {
     const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() === target.toString());
     if (doc && doc.isDirty) await doc.save();
   }
+  // `std` n'est imposée à la CLI que si l'utilisateur l'a configurée explicitement.
+  const stdSetting = (cfg().get('std.path') || '').trim();
+  const env = stdSetting
+    ? { KASTEL_STD_PATH: expandVariables(stdSetting, { workspaceRoot: workspaceRoot(target), env: process.env, home: os.homedir() }) }
+    : undefined;
   await runTask('Kastel: ' + path.basename(target.fsPath), cfg().get('kastel.path'), [target.fsPath],
-    workspaceRoot(target) || path.dirname(target.fsPath));
+    workspaceRoot(target) || path.dirname(target.fsPath), env);
 }
 
 function openRepl() {
@@ -120,10 +128,28 @@ async function startServer(context) {
   ensureExecutable(resolved.command);
   output.appendLine(`Serveur de langage : ${resolved.command} (${resolved.source}, ${targetId(process.platform, process.arch)})`);
 
+  // Bibliothèque standard : le LSP ne la trouve pas seul hors de la machine de build.
+  const serverEnv = { ...process.env };
+  const std = resolveStd({
+    setting: cfg().get('std.path'),
+    kastelCommand: cfg().get('kastel.path'),
+    extensionPath: context.extensionPath,
+    workspaceRoot: workspaceRoot(),
+    home: os.homedir(),
+  });
+  if (std && std.error) {
+    output.appendLine(std.error);
+  } else if (std) {
+    serverEnv.KASTEL_STD_PATH = std.path;
+    output.appendLine(`Bibliothèque standard : ${std.path} (${std.source})`);
+  } else {
+    output.appendLine('Bibliothèque standard introuvable : `import std.*` ne sera pas résolu (réglage forge.std.path).');
+  }
+
   client = new lc.LanguageClient(
     'forge',
     'Forge — Kastel',
-    { command: resolved.command, args: cfg().get('server.args') || [], options: { cwd: workspaceRoot() } },
+    { command: resolved.command, args: cfg().get('server.args') || [], options: { cwd: workspaceRoot(), env: serverEnv } },
     { documentSelector: [{ scheme: 'file', language: 'kastel' }], outputChannel: output }
   );
   try {
@@ -156,7 +182,7 @@ async function activate(context) {
       await startServer(context);
     }),
     vscode.workspace.onDidChangeConfiguration(async (e) => {
-      if (e.affectsConfiguration('forge.server')) {
+      if (e.affectsConfiguration('forge.server') || e.affectsConfiguration('forge.std')) {
         warnedMissingServer = false;
         await stopServer();
         await startServer(context);
