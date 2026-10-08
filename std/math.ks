@@ -111,7 +111,7 @@ export func min_list<T: Ord>(values: List<T>) -> Option<T> {
             smallest = value;
         }
     }
-    return Some(smallest);
+    return Some<T>(smallest);
 }
 
 export func max_list<T: Ord>(values: List<T>) -> Option<T> {
@@ -125,7 +125,7 @@ export func max_list<T: Ord>(values: List<T>) -> Option<T> {
             largest = value;
         }
     }
-    return Some(largest);
+    return Some<T>(largest);
 }
 
 // `zero` est l'élément neutre fourni par l'appelant (0, 0.0, "") : Add

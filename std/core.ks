@@ -65,13 +65,16 @@ export func identity<T>(value: T) -> T {
     return value;
 }
 
-export func constant<T>(value: T) -> dynamic {
-    return func(ignored) {
+export func constant<T>(value: T) -> func() -> T {
+    return func() {
         return value;
     };
 }
 
-export func compose(f: dynamic, g: dynamic) -> dynamic {
+export func compose<A, B, C>(
+    f: func(B) -> C,
+    g: func(A) -> B
+) -> func(A) -> C {
     return func(value) {
         return f(g(value));
     };
@@ -85,7 +88,7 @@ export func pipe(value: dynamic, steps: List<dynamic>) -> dynamic {
     return result;
 }
 
-export func repeat(times: int, action: dynamic) -> None {
+export func repeat(times: int, action: func() -> None) -> None {
     if times < 0 {
         throw "repeat: times doit etre positif";
     }
